@@ -13,6 +13,7 @@
   "dependencies": {
     "bull": "^4.10.2",
     "cors": "^2.8.5",
+    "cross-spawn-with-kill": "^1.0.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "ioredis": "^5.2.4",
@@ -20,5 +21,8 @@
     "socket.io": "^4.5.4",
     "strip-color": "^0.1.0",
     "ws": "^8.12.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.32.0"
   }
 }

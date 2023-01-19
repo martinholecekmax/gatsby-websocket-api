@@ -1,7 +1,8 @@
+const { cancelProcess } = require('../commands/buildCommands');
 const { models } = require('../models');
 const buildQueue = require('../services/queue').getInstance();
 const { BUILD_STATUS } = require('../utils/constants');
-const { cancelJob } = require('../jobs/job');
+const socket = require('../services/socket').getInstance();
 
 const allBuilds = async (req, res) => {
   const builds = await models.Build.find({}).sort({ createdAt: -1 });
@@ -14,6 +15,36 @@ const getBuild = async (req, res) => {
   const build = await models.Build.findById(id);
   const logs = await models.Log.find({ buildId: id });
   res.json({ build, logs });
+};
+
+const updateBuildStatus = async (buildId, status) => {
+  const build = await models.Build.findById(buildId);
+  if (build) {
+    build.status = status;
+    switch (status) {
+      case BUILD_STATUS.BUILDING:
+        build.startedAt = new Date();
+        break;
+      case BUILD_STATUS.SUCCESS:
+      case BUILD_STATUS.CANCELLED:
+      case BUILD_STATUS.FAILED:
+        build.endedAt = new Date();
+        if (build.startedAt && build.endedAt) {
+          build.duration = build.endedAt - build.startedAt;
+        } else {
+          build.duration = 0;
+        }
+        break;
+      default:
+        break;
+    }
+    await build.save();
+    socket.emit('build-updated', {
+      id: buildId,
+      payload: build,
+    });
+  }
+  return build;
 };
 
 const triggerBuild = async (req, res) => {
@@ -29,51 +60,27 @@ const triggerBuild = async (req, res) => {
     authorId,
   }).save();
   const id = build.id;
-  const job = await buildQueue.add({ id, clearCache, cancelBuild: false });
+  const job = await buildQueue.add({ id, clearCache });
   build.jobId = job.id;
   await build.save();
+  socket.emit('build-updated', {
+    id,
+    payload: build,
+  });
   res.json(build);
 };
 
 const cancelBuild = async (req, res) => {
   const id = req.params.id;
-  const build = await models.Build.findById(id);
-  console.log('build id', build._id);
-  build.status = BUILD_STATUS.CANCELLED;
-  await build.save();
-
-  // TODO: Cancel the build job
-  buildQueue.removeJobs(build.jobId);
-  console.log('build.jobId', build.jobId);
-  const job = await buildQueue.getJob(build.jobId);
-  cancelJob();
-  if (job) {
-    job.update({ ...job.data, cancelBuild: true });
-    res.json({ message: 'Build cancelled', build, job: job.toJSON() });
-  } else {
-    res.json({ message: 'Build cancelled', build });
-  }
-  //   if (!job) {
-  //     console.log('job not found');
-  //     res.json({ message: 'Build not found', build });
-  //   } else {
-  //     console.log('job', job);
-
-  // await job.remove();
-  // if (job.isActive()) {
-  //   console.log('job is active');
-  //   await job.discard();
-  //   // Kill the process
-  // } else {
-  //   console.log('job is not active');
-  // }
-
-  // }
+  await updateBuildStatus(id, BUILD_STATUS.CANCELLED);
+  cancelProcess(id);
+  res.json({ message: 'Build cancelled' });
 };
 
 module.exports = {
+  allBuilds,
+  getBuild,
+  updateBuildStatus,
   triggerBuild,
   cancelBuild,
-  getBuild,
-  allBuilds,
 };
