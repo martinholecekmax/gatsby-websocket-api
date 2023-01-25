@@ -2,9 +2,9 @@ const { sendDataLog } = require('../controller/logController');
 
 const { exec } = require('child_process');
 const spawn = require('cross-spawn-with-kill');
-const path = require('path');
 
-const buildDirectory = path.join(__dirname, '../../../gatsby-frontend');
+const buildDirectory = process.env.BUILD_DIR;
+const outputDirectory = process.env.OUTPUT_DIR;
 const gatsbyCommand = 'gatsby';
 
 let processes = [];
@@ -66,7 +66,6 @@ const gatsbyBuild = async (buildId) => {
 
 const gatsbyServe = async (buildId) => {
   return new Promise((resolve, reject) => {
-    const outputDirectory = 'testing';
     const command = `rm -rf ${outputDirectory} && mkdir ${outputDirectory} && cp -r public/* ${outputDirectory}`;
     exec(
       command,
