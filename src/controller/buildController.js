@@ -17,6 +17,12 @@ const getBuild = async (req, res) => {
   res.json({ build, logs });
 };
 
+const getLogsByBuildId = async (req, res) => {
+  const id = req.params.id;
+  const logs = await models.Log.find({ buildId: id });
+  res.json(logs);
+};
+
 const updateBuildStatus = async (buildId, status) => {
   const build = await models.Build.findById(buildId);
   if (build) {
@@ -83,4 +89,5 @@ module.exports = {
   updateBuildStatus,
   triggerBuild,
   cancelBuild,
+  getLogsByBuildId,
 };
