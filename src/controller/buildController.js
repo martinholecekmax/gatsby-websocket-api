@@ -64,6 +64,7 @@ const triggerBuild = async (req, res) => {
     jobId: null,
     authorName,
     authorId,
+    site: 'test',
   }).save();
   const id = build.id;
   const job = await buildQueue.add({ id, clearCache });

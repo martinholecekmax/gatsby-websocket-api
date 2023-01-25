@@ -9,6 +9,7 @@ const BuildSchema = mongoose.Schema({
   jobId: String,
   authorName: String,
   authorId: String,
+  site: String,
 });
 
 module.exports = mongoose.model('Build', BuildSchema);
