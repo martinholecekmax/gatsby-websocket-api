@@ -5,7 +5,9 @@ const { BUILD_STATUS } = require('../utils/constants');
 const socket = require('../services/socket').getInstance();
 
 const allBuilds = async (req, res) => {
-  const builds = await models.Build.find({}).sort({ createdAt: -1 });
+  const builds = await models.Build.find({
+    site: process.env.SITE,
+  }).sort({ createdAt: -1 });
   res.json(builds);
 };
 
@@ -64,7 +66,7 @@ const triggerBuild = async (req, res) => {
     jobId: null,
     authorName,
     authorId,
-    site: 'test',
+    site: process.env.SITE,
   }).save();
   const id = build.id;
   const job = await buildQueue.add({ id, clearCache });

@@ -2,8 +2,15 @@ const { sendDataLog } = require('../controller/logController');
 
 const { exec } = require('child_process');
 const spawn = require('cross-spawn-with-kill');
+const path = require('path');
 
-const buildDirectory = process.env.BUILD_DIR;
+let buildDirectory = path.join(__dirname, process.env.BUILD_DIR);
+
+// If the build directory is an absolute path, use it as is
+if (process.env.BUILD_DIR.startsWith('/')) {
+  buildDirectory = process.env.BUILD_DIR;
+}
+
 const outputDirectory = process.env.OUTPUT_DIR;
 const gatsbyCommand = 'gatsby';
 
@@ -11,16 +18,18 @@ let processes = [];
 let cancelledBuilds = [];
 
 const cancelProcess = async (buildId) => {
-  console.log('Cancelling job');
   cancelledBuilds[buildId] = true;
   if (processes[buildId]) {
-    console.log('Killing process');
     processes[buildId].kill();
   }
 };
 
 const gatsbyClean = async (buildId) => {
   return new Promise((resolve, reject) => {
+    if (isBuildCancelled(buildId)) {
+      reject('CANCELLED');
+      return;
+    }
     let gatsbyCleanProcess = spawn(gatsbyCommand, ['clean'], {
       cwd: buildDirectory,
       shell: true,
@@ -43,6 +52,10 @@ const gatsbyClean = async (buildId) => {
 
 const gatsbyBuild = async (buildId) => {
   return new Promise((resolve, reject) => {
+    if (isBuildCancelled(buildId)) {
+      reject('CANCELLED');
+      return;
+    }
     processes[buildId] = spawn(gatsbyCommand, ['build'], {
       cwd: buildDirectory,
       shell: true,
@@ -54,11 +67,14 @@ const gatsbyBuild = async (buildId) => {
       sendDataLog(buildId, data);
     });
     processes[buildId].on('close', (code) => {
-      console.log('code', code);
       if (code === 0) {
         resolve();
       } else {
-        reject();
+        if (isBuildCancelled(buildId)) {
+          reject('CANCELLED');
+        } else {
+          reject('FAILED');
+        }
       }
     });
   });
@@ -66,6 +82,10 @@ const gatsbyBuild = async (buildId) => {
 
 const gatsbyServe = async (buildId) => {
   return new Promise((resolve, reject) => {
+    if (isBuildCancelled(buildId)) {
+      reject('CANCELLED');
+      return;
+    }
     const command = `rm -rf ${outputDirectory} && mkdir ${outputDirectory} && cp -r public/* ${outputDirectory}`;
     exec(
       command,
@@ -75,13 +95,11 @@ const gatsbyServe = async (buildId) => {
       },
       (error, stdout, stderr) => {
         if (error) {
-          console.log(`error: ${error.message}`);
           sendDataLog(buildId, error?.message);
           reject();
           return;
         }
         if (stderr) {
-          console.log(`stderr: ${stderr}`);
           sendDataLog(buildId, stderr);
           reject();
           return;

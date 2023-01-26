@@ -8,7 +8,6 @@ const sendDataLog = async (buildId, data) => {
     .filter((line) => line.trim() !== '');
   for (let i = 0; i < strippedData.length; i++) {
     const message = strippedData[i];
-    console.log(`stdout: ${message}`);
     const logs = [];
     if (message && message.trim() !== '') {
       try {
