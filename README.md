@@ -2,6 +2,26 @@
 
 This is a simple websocket API for triggering Gatsby builds remotely.
 
+## Table of Contents
+
+- [Requirements](#requirements)
+  - [Clone the repository](#clone-the-repository)
+  - [Install the dependencies](#install-the-dependencies)
+  - [Environment variables](#environment-variables)
+  - [Bull Queue with Redis](#bull-queue-with-redis)
+  - [MongoDB](#mongodb)
+  - [Gatsby Project](#gatsby-project)
+- [Project recommended structure](#project-recommended-structure)
+  - [Linux server](#linux-server)
+  - [Windows](#windows)
+  - [Important note](#important-note)
+- [The build process flow](#the-build-process-flow)
+  - [Build process job](#build-process-job)
+  - [Canceling the build process](#canceling-the-build-process)
+- [Start the server](#start-the-server)
+- [Using the client](#using-the-client)
+- [Contributing](#contributing)
+
 ## Requirements
 
 In order to run the server, you need to have the Node.js runtime installed on your machine. You can download it from [here](https://nodejs.org/en/download/).
@@ -89,11 +109,11 @@ npm install -g gatsby-cli
 
 You will also need to set the `BUILD_OUTPUT_DIR` environment variable to the path of the directory where you want to store generated static files of your Gatsby project. The build process will copy the generated static files into gatsby public directory. The public directory will be then copied into the `BUILD_OUTPUT_DIR` directory (typically `/var/www/html` on the linux server). This will be further explained in the next section.
 
-### Project recommended structure
+## Project recommended structure
 
 The project is designed to be used on the linux server because it is the most common server environment. However, you can also use it on Windows. The only difference is that you will need to use relative paths to set the environment variables. You can also use the WSL to run the server on your machine and use the linux paths. This will be explained in the detail in the this section.
 
-#### Linux server
+### Linux server
 
 Typically, on the linux server, you will have the following structure:
 
@@ -113,7 +133,7 @@ GATSBY_PROJECT_PATH=/home/ubuntu/gatsby-project
 BUILD_OUTPUT_DIR=/var/www/html
 ```
 
-#### Windows
+### Windows
 
 If you develop on Windows, you can either use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to run the server on your machine or you can use relative paths. If you use the WSL, you can use the same environment variables as on the linux server. If you use relative paths, you need to use the relative paths to the Gatsby project and the output directory.
 
@@ -143,13 +163,13 @@ If you set the `BUILD_OUTPUT_DIR` to the `../public-directory` directory, the pr
     └── /public-directory/
 ```
 
-#### Important note
+### Important note
 
 The build process will delete all the files in the `BUILD_OUTPUT_DIR` directory before copying the generated static files into it. Make sure that you have correctly set the `BUILD_OUTPUT_DIR` environment variable to the directory where you want to store the generated static files, otherwise, you can lose your data.
 
 Internally, the project uses `rm -rf` command to delete all the files in the `BUILD_OUTPUT_DIR` directory.
 
-## Starting the build process
+## The build process flow
 
 1.  The client sends the `POST /trigger-build` request to the server to trigger the build process.
 2.  The server creates a new build log in the MongoDB database and adds the new build to the Bull queue.
@@ -182,7 +202,7 @@ The reason why only the `gatsby build` command can be canceled during the genera
 
 Once the build process is canceled, the server will send the `buildCanceled` event to all the connected clients.
 
-## Starting the server
+## Start the server
 
 To start the server, run the following command:
 
