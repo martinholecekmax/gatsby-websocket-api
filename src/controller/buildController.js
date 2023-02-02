@@ -45,7 +45,7 @@ const updateBuildStatus = async (buildId, status) => {
         break;
     }
     await build.save();
-    socket.emit('build-updated', {
+    socket.emit('build-status', {
       id: buildId,
       payload: build,
     });
@@ -64,13 +64,12 @@ const triggerBuild = async (req, res) => {
     jobId: null,
     authorName,
     authorId,
-    site: process.env.SITE,
   }).save();
   const id = build.id;
   const job = await buildQueue.add({ id, clearCache });
   build.jobId = job.id;
   await build.save();
-  socket.emit('build-updated', {
+  socket.emit('build-status', {
     id,
     payload: build,
   });

@@ -5,12 +5,12 @@ This is a simple websocket API for triggering Gatsby builds remotely.
 ## Table of Contents
 
 - [Requirements](#requirements)
-  - [Clone the repository](#clone-the-repository)
-  - [Install the dependencies](#install-the-dependencies)
-  - [Environment variables](#environment-variables)
-  - [Bull Queue with Redis](#bull-queue-with-redis)
-  - [MongoDB](#mongodb)
-  - [Gatsby Project](#gatsby-project)
+- [Clone the repository](#clone-the-repository)
+- [Install the dependencies](#install-the-dependencies)
+- [Environment variables](#environment-variables)
+- [Bull Queue with Redis](#bull-queue-with-redis)
+- [MongoDB](#mongodb)
+- [Gatsby Project](#gatsby-project)
 - [Project recommended structure](#project-recommended-structure)
   - [Linux server](#linux-server)
   - [Windows](#windows)
@@ -20,13 +20,27 @@ This is a simple websocket API for triggering Gatsby builds remotely.
   - [Canceling the build process](#canceling-the-build-process)
 - [Start the server](#start-the-server)
 - [Using the client](#using-the-client)
+- [Routes](#routes)
+  - [Get all builds](#get-all-builds)
+  - [Get a specific build by ID](#get-a-specific-build-by-id)
+  - [Trigger the build process](#trigger-the-build-process)
+  - [Cancel the build process](#cancel-the-build-process)
+  - [Get the build logs](#get-the-build-logs)
+- [Websocket Events](#websocket-events)
+  - [Build status event](#build-status-event)
+  - [Build logs event](#build-logs-event)
+  - [Listening to the events in the client](#listening-to-the-events-in-the-client)
 - [Contributing](#contributing)
 
 ## Requirements
 
 In order to run the server, you need to have the Node.js runtime installed on your machine. You can download it from [here](https://nodejs.org/en/download/).
 
-### Clone the repository
+You need to have the Gatsby project on your machine that you want to build remotely. You can start a new Gatsby project. More information can be found in the following section [Gatsby Project](#gatsby-project).
+
+In order to use the websocket API, you need to have a websocket client. You can use the [client](https://github.com/martinholecekmax/gatsby-build-tracking-website) that I have created for this project. You can also create your own client. More information can be found in the following section [Using the client](#using-the-client).
+
+## Clone the repository
 
 First, you need to clone the repository to your machine.
 
@@ -34,7 +48,7 @@ First, you need to clone the repository to your machine.
 git clone https://github.com/martinholecekmax/gatsby-websocket-api.git
 ```
 
-### Install the dependencies
+## Install the dependencies
 
 Then, you need to install the dependencies.
 
@@ -42,13 +56,13 @@ Then, you need to install the dependencies.
 npm install
 ```
 
-### Environment variables
+## Environment variables
 
 The project uses environment variables to store the configuration. You need to either create a `.env` file in the root directory of the project or rename the `.env.example` file to `.env` and fill in the values.
 
 You can find the list of the environment variables in the `.env.example` file.
 
-### Bull Queue with Redis
+## Bull Queue with Redis
 
 The project implements a [Bull Queue](https://github.com/OptimalBits/bull) to handle the build requests. You need to have a Redis server running on your machine. You can download it from [here](https://redis.io/docs/getting-started/installation/).
 
@@ -70,7 +84,7 @@ node test-redis.js
 
 This command should print `Redis connection successful` if the connection was successful.
 
-### MongoDB
+## MongoDB
 
 To store the build logs, the project uses [MongoDB](https://www.mongodb.com/). You need to have a MongoDB server running on your machine or you can use a cloud service like [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
 
@@ -95,7 +109,7 @@ db.createUser({"user" : "test","pwd": "password","roles" : [{"role" : "read","db
 
 **Note:** Use the strong password for the `MONGO_DB_PASSWORD` variable in production.
 
-### Gatsby Project
+## Gatsby Project
 
 You also need to have a Gatsby project on your machine that you want to build remotely. You can start a new Gatsby project from [here](https://www.gatsbyjs.org/docs/quick-start/).
 
@@ -219,6 +233,220 @@ The server will start on the port 3001 by default. You can change the port by se
 You can find the client code in following repository: [Gatsby Build Tracking Website](https://github.com/martinholecekmax/gatsby-build-tracking-website).
 
 The client is a simple React application that allows you to trigger the build process and see the build logs. The client is not a part of the `gatsby-websocket-api` project. You can use the client or you can create your own client.
+
+## Routes
+
+You can use the following routes to get the list of all builds, trigger the build process, cancel the build process and get the build details such as the build logs.
+
+### Get all builds
+
+Route: `GET /builds`
+
+Returns all the builds with details from the MongoDB database. The builds are returned in the following format:
+
+```json
+[
+  {
+    "_id": "63dbf230e74b97d63a06bfc7",
+    "status": "SUCCESS",
+    "createdAt": "2023-02-02T17:26:08.668Z",
+    "startedAt": "2023-02-02T17:26:08.676Z",
+    "endedAt": "2023-02-02T17:26:21.337Z",
+    "duration": 12661,
+    "jobId": "516",
+    "authorName": "Martin",
+    "authorId": "1",
+    "__v": 0
+  }
+]
+```
+
+The `status` property can be one of the following values:
+
+- `QUEUED` - The build process is in the queue.
+- `BUILDING` - The build process is in progress.
+- `CANCELLED` - The build process was canceled.
+- `FAILED` - The build process failed.
+- `SUCCESS` - The build process was successful.
+
+The `duration` is calculated by subtracting the `startedAt` from the `endedAt` property. If the `endedAt` property is not set, the `duration` is set to zero. The `duration` is in milliseconds.
+
+### Get a specific build by ID
+
+Route: `GET /builds/:id`
+
+Returns the specific build with details from the MongoDB database. The `id` parameter is required. It should be the ID of the build. The build details are returned in the following format:
+
+```json
+{
+  "build": {
+    "_id": "63dbf230e74b97d63a06bfc7",
+    "status": "SUCCESS",
+    "createdAt": "2023-02-02T17:26:08.668Z",
+    "startedAt": "2023-02-02T17:26:08.676Z",
+    "endedAt": "2023-02-02T17:26:21.337Z",
+    "duration": 12661,
+    "jobId": "516",
+    "authorName": "Martin",
+    "authorId": "1"
+  },
+  "logs": [
+    {
+      "_id": "5f9e1b9b9b9b9b9b9b9b9b9b",
+      "timestamp": "2020-10-30T13:00:00.000Z",
+      "message": "Build started",
+      "command": "Gatsby",
+      "buildId": "5f9e1b9b9b9b9b9b9b9b9b9b"
+    }
+  ]
+}
+```
+
+The build `logs` are included in the response just for convenience if you want to get the build logs in one request. You can also get the build logs by sending the `GET /logs/:id` request.
+
+### Trigger the build process
+
+Route: `POST /trigger-build`
+
+Triggers the build process. The request body should contain the following parameters:
+
+```json
+{
+  "clearCache": true
+}
+```
+
+The `clearCache` parameter is optional. If you set it to `true`, the build process will clear the cache of the Gatsby project before running the `gatsby build` command.
+
+The response body contains the details of the triggered build such as the following:
+
+```json
+{
+  "status": "QUEUED",
+  "createdAt": "2023-02-02T19:28:34.327Z",
+  "startedAt": null,
+  "endedAt": null,
+  "duration": null,
+  "jobId": "517",
+  "authorName": "Martin",
+  "authorId": "1",
+  "_id": "63dc0ee2aaf7005d125673cd",
+  "__v": 0
+}
+```
+
+### Cancel the build process
+
+Route: `POST /cancel-build`
+
+Cancels the build process. The request body should contain the following parameters:
+
+```json
+{
+  "buildId": "5f9e1b9b9b9b9b9b9b9b9b9b"
+}
+```
+
+The `buildId` parameter is required. It should be the ID of the build that you want to cancel.
+
+### Get the build logs
+
+Route: `GET /logs/:id`
+
+Get all the logs of the specific build from the MongoDB database. The `id` parameter is required. It should be the ID of the build. The logs are returned in the following format:
+
+```json
+{
+  "data": [
+    {
+      "_id": "5f9e1b9b9b9b9b9b9b9b9b9b",
+      "timestamp": "2020-10-30T13:00:00.000Z",
+      "message": "Build started",
+      "command": "Gatsby",
+      "buildId": "5f9e1b9b9b9b9b9b9b9b9b9b"
+    }
+  ]
+}
+```
+
+## Websocket Events
+
+The application implements the socket.io server. The client can connect to the server and listen to the events. There are two events that the client can listen to:
+
+### Build status event
+
+Socket.io event name: `build-status`
+
+Emitted when the build status is updated. The event data contains the following properties:
+
+```json
+{
+  "id": "5f9e1b9b9b9b9b9b9b9b9b9b",
+  "payload": {
+    "_id": "63dc0fe28cc371cec3c6ec03",
+    "status": "SUCCESS",
+    "createdAt": "2023-02-02T19:32:50.305Z",
+    "startedAt": "2023-02-02T19:32:50.362Z",
+    "endedAt": "2023-02-02T19:33:03.191Z",
+    "duration": 12829,
+    "jobId": "518",
+    "authorName": "Martin",
+    "authorId": "1",
+    "__v": 0
+  }
+}
+```
+
+The `payload` property contains the updated build details.
+
+### Build logs event
+
+Socket.io event name: `build-logs`
+
+Emitted when the build logs are updated. The event data contains the following properties:
+
+```json
+{
+  "id": "5f9e1b9b9b9b9b9b9b9b9b9b",
+  "payload": [
+    {
+      "timestamp": "2023-02-02T19:33:03.188Z",
+      "message": "Build completed successfully",
+      "command": "Gatsby",
+      "sourceStream": "STDOUT",
+      "buildId": "63dc0fe28cc371cec3c6ec03",
+      "_id": "63dc0fef8cc371cec3c6ec8a",
+      "__v": 0
+    }
+  ]
+}
+```
+
+The `payload` property contains the updated build logs. There can be multiple logs in the array. This is because the log message can be split into multiple lines.
+
+### Listening to the events in the client
+
+The client can connect to the socket.io server by sending the following request:
+
+```js
+const socket = io(`http://${HOST}:${PORT}`);
+
+socket.on('connect', () => {
+  console.log('Connected to the socket.io server');
+});
+
+socket.on('build-status', (data) => {
+  console.log('Build updated', data);
+});
+
+socket.on('build-logs', (data) => {
+  console.log('Build logs updated', data);
+});
+
+socket.on('disconnect', () => {
+  console.log('Disconnected from the socket.io server');
+});
+```
 
 ## Contributing
 
