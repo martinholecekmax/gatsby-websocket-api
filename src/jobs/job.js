@@ -4,7 +4,9 @@ const { updateBuildStatus } = require('../controller/buildController');
 const {
   gatsbyClean,
   gatsbyBuild,
-  gatsbyServe,
+  makeDirectory,
+  removeDirectory,
+  copyDirectory,
 } = require('../commands/buildCommands');
 
 const job = async (job, done) => {
@@ -18,7 +20,9 @@ const job = async (job, done) => {
     }
 
     await gatsbyBuild(buildId);
-    await gatsbyServe(buildId);
+    await removeDirectory(buildId);
+    await makeDirectory(buildId);
+    await copyDirectory(buildId);
 
     sendDataLog(buildId, 'Build completed successfully');
     await updateBuildStatus(buildId, BUILD_STATUS.SUCCESS);

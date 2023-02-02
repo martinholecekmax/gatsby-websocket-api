@@ -6,9 +6,9 @@ const redis = new Redis({
 
 redis
   .ping()
-  .then(console.log)
+  .then(console.log('Redis connection successful'))
   .catch((err) => {
     console.log(`Error connecting to Redis: ${err}`);
   });
 
-console.log('redis', redis.status);
+console.log('__dirname', __dirname);
