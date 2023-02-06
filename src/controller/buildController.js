@@ -1,7 +1,7 @@
 const { cancelProcess } = require('../commands/buildCommands');
-const { models } = require('../models');
-const buildQueue = require('../services/queue').getInstance();
 const { BUILD_STATUS } = require('../utils/constants');
+const models = require('../models');
+const buildQueue = require('../services/queue').getInstance();
 const socket = require('../services/socket').getInstance();
 
 const allBuilds = async (req, res) => {

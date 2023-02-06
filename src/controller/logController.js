@@ -1,6 +1,6 @@
 const stripColor = require('strip-color');
 const socket = require('../services/socket').getInstance();
-const { models } = require('../models');
+const models = require('../models');
 
 const sendDataLog = async (buildId, data) => {
   let strippedData = stripColor(data.toString())
