@@ -24,7 +24,13 @@ const cancelProcess = async (buildId) => {
   }
 };
 
-const runCommand = async (buildId, command, args = [], cwd) => {
+const runCommand = async (
+  buildId,
+  command,
+  args = [],
+  cwd,
+  isKillable = false
+) => {
   return new Promise((resolve, reject) => {
     if (isBuildCancelled(buildId)) {
       reject('CANCELLED');
@@ -35,12 +41,19 @@ const runCommand = async (buildId, command, args = [], cwd) => {
       cwd,
       shell: true,
     });
+
+    if (isKillable) {
+      processes[buildId] = commandProcess;
+    }
+
     commandProcess.stdout.on('data', (data) => {
       sendDataLog(buildId, data);
     });
+
     commandProcess.stderr.on('data', (data) => {
       sendDataLog(buildId, data);
     });
+
     commandProcess.on('close', (code) => {
       if (code === 0) {
         resolve();
@@ -60,7 +73,7 @@ const gatsbyClean = async (buildId) => {
 };
 
 const gatsbyBuild = async (buildId) => {
-  return runCommand(buildId, gatsbyCommand, ['build'], buildDirectory);
+  return runCommand(buildId, gatsbyCommand, ['build'], buildDirectory, true);
 };
 
 const removeDirectory = async (buildId) => {
