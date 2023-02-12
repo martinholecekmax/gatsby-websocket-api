@@ -1,6 +1,8 @@
-# Websocket Server API for remote Gatsby Build
+# WebSocket Server API for remote Gatsby Build
 
-This is a simple websocket API for triggering Gatsby builds remotely.
+<p align="center"><img src="https://raw.githubusercontent.com/martinholecekmax/gatsby-websocket-api/master/assets/logo.png" width="200" height="200"></p>
+
+This is a simple WebSocket API for triggering Gatsby builds remotely.
 
 ## Table of Contents
 
@@ -29,7 +31,7 @@ This is a simple websocket API for triggering Gatsby builds remotely.
 - [Websocket Events](#websocket-events)
   - [Build status event](#build-status-event)
   - [Build logs event](#build-logs-event)
-  - [Listening to the events in the client](#listening-to-the-events-in-the-client)
+  - [Listening to the events on the client](#listening-to-the-events-in-the-client)
 - [Contributing](#contributing)
 
 ## Requirements
@@ -38,7 +40,7 @@ In order to run the server, you need to have the Node.js runtime installed on yo
 
 You need to have the Gatsby project on your machine that you want to build remotely. You can start a new Gatsby project. More information can be found in the following section [Gatsby Project](#gatsby-project).
 
-In order to use the websocket API, you need to have a websocket client. You can use the [client](https://github.com/martinholecekmax/gatsby-build-tracking-website) that I have created for this project. You can also create your own client. More information can be found in the following section [Using the client](#using-the-client).
+In order to use the WebSocket API, you need to have a WebSocket client. You can use the [client](https://github.com/martinholecekmax/gatsby-build-tracking-website) that I have created for this project. You can also create your own client. More information can be found in the following section [Using the client](#using-the-client).
 
 ## Clone the repository
 
@@ -82,7 +84,7 @@ You can test the connection to the Redis server by running the following command
 node test-redis.js
 ```
 
-This command should print `Redis connection successful` if the connection was successful.
+This command should print the message `Redis connection successful` if the connection was successful.
 
 ## MongoDB
 
@@ -121,15 +123,15 @@ This project uses the [Gatsby CLI](https://www.gatsbyjs.org/docs/gatsby-cli/) to
 npm install -g gatsby-cli
 ```
 
-You will also need to set the `BUILD_OUTPUT_DIR` environment variable to the path of the directory where you want to store generated static files of your Gatsby project. The build process will copy the generated static files into gatsby public directory. The public directory will be then copied into the `BUILD_OUTPUT_DIR` directory (typically `/var/www/html` on the linux server). This will be further explained in the next section.
+You will also need to set the `BUILD_OUTPUT_DIR` environment variable to the path of the directory where you want to store generated static files of your Gatsby project. The build process will copy the generated static files into gatsby public directory. The public directory will be then copied into the `BUILD_OUTPUT_DIR` directory (typically `/var/www/html` on the Linux server). This will be further explained in the next section.
 
 ## Project recommended structure
 
-The project is designed to be used on the linux server because it is the most common server environment. However, you can also use it on Windows. The only difference is that you will need to use relative paths to set the environment variables. You can also use the WSL to run the server on your machine and use the linux paths. This will be explained in the detail in the this section.
+The project is designed to be used on the Linux server because it is the most common server environment. However, you can also use it on Windows. The only difference is that you will need to use relative paths to set the environment variables. You can also use the WSL to run the server on your machine and use the Linux paths. This will be explained in the detail in this section.
 
 ### Linux server
 
-Typically, on the linux server, you will have the following structure:
+Typically, on the Linux server, you will have the following structure:
 
 ```bash
 ├── /home/ubuntu/
@@ -149,7 +151,7 @@ BUILD_OUTPUT_DIR=/var/www/html
 
 ### Windows
 
-If you develop on Windows, you can either use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to run the server on your machine or you can use relative paths. If you use the WSL, you can use the same environment variables as on the linux server. If you use relative paths, you need to use the relative paths to the Gatsby project and the output directory.
+If you develop on Windows, you can either use [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to run the server on your machine or you can use relative paths. If you use the WSL, you can use the same environment variables as on the Linux server. If you use relative paths, you need to use the relative paths to the Gatsby project and the output directory.
 
 For example, if you have the following structure.
 
@@ -188,7 +190,7 @@ Internally, the project uses `rm -rf` command to delete all the files in the `BU
 1.  The client sends the `POST /trigger-build` request to the server to trigger the build process.
 2.  The server creates a new build log in the MongoDB database and adds the new build to the Bull queue.
 3.  The server broadcasts the new build to all the connected clients.
-4.  The server starts the build process job from the Bull queue. Rundown of the build process job is explained in the [Build process job](#build-process-job) section.
+4.  The server starts the build process job from the Bull queue. A Rundown of the build process job is explained in the [Build process job](#build-process-job) section.
 5.  When the build process job is finished, the server updates the build log in the MongoDB database.
 6.  The server broadcasts the updated build to all the connected clients.
 
@@ -230,7 +232,7 @@ The server will start on the port 3001 by default. You can change the port by se
 
 ## Using the client
 
-You can find the client code in following repository: [Gatsby Build Tracking Website](https://github.com/martinholecekmax/gatsby-build-tracking-website).
+You can find the client code in the following repository: [Gatsby Build Tracking Website](https://github.com/martinholecekmax/gatsby-build-tracking-website).
 
 The client is a simple React application that allows you to trigger the build process and see the build logs. The client is not a part of the `gatsby-websocket-api` project. You can use the client or you can create your own client.
 
@@ -424,7 +426,7 @@ Emitted when the build logs are updated. The event data contains the following p
 
 The `payload` property contains the updated build logs. There can be multiple logs in the array. This is because the log message can be split into multiple lines.
 
-### Listening to the events in the client
+### Listening to the events on the client
 
 The client can connect to the socket.io server by sending the following request:
 
