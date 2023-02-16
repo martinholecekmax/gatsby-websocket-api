@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 // mongoose.set('useFindAndModify', false);
-mongoose.set('strictQuery', false);
+mongoose.set("strictQuery", false);
 mongoose.connect(
   `mongodb://${process.env.MONGO_DB_URL}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_DATABASE}`,
   {
@@ -17,11 +17,11 @@ const db = mongoose.connection;
 
 // db.products.createIndex( { name: "text", description: "text" } )
 
-db.once('open', () => {
-  console.log('Connected To MongoDB');
+db.once("open", () => {
+  console.log("Connected To MongoDB");
 });
 
-db.on('error', (error) => {
+db.on("error", (error) => {
   console.log(error);
 });
 

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const StructuredLogSchema = mongoose.Schema({
   message: String,
@@ -8,4 +8,4 @@ const StructuredLogSchema = mongoose.Schema({
   status: String,
 });
 
-module.exports = mongoose.model('StructuredLog', StructuredLogSchema);
+module.exports = mongoose.model("StructuredLog", StructuredLogSchema);

@@ -433,20 +433,20 @@ The client can connect to the socket.io server by sending the following request:
 ```js
 const socket = io(`http://${HOST}:${PORT}`);
 
-socket.on('connect', () => {
-  console.log('Connected to the socket.io server');
+socket.on("connect", () => {
+  console.log("Connected to the socket.io server");
 });
 
-socket.on('build-status', (data) => {
-  console.log('Build updated', data);
+socket.on("build-status", (data) => {
+  console.log("Build updated", data);
 });
 
-socket.on('build-logs', (data) => {
-  console.log('Build logs updated', data);
+socket.on("build-logs", (data) => {
+  console.log("Build logs updated", data);
 });
 
-socket.on('disconnect', () => {
-  console.log('Disconnected from the socket.io server');
+socket.on("disconnect", () => {
+  console.log("Disconnected from the socket.io server");
 });
 ```
 

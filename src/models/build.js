@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const BuildSchema = mongoose.Schema({
   status: String,
@@ -11,4 +11,4 @@ const BuildSchema = mongoose.Schema({
   authorId: String,
 });
 
-module.exports = mongoose.model('Build', BuildSchema);
+module.exports = mongoose.model("Build", BuildSchema);

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const LogSchema = mongoose.Schema({
   timestamp: Date,
@@ -8,4 +8,4 @@ const LogSchema = mongoose.Schema({
   buildId: String,
 });
 
-module.exports = mongoose.model('Log', LogSchema);
+module.exports = mongoose.model("Log", LogSchema);

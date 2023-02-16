@@ -1,8 +1,8 @@
-const { cancelProcess } = require('../commands/buildCommands');
-const { BUILD_STATUS } = require('../utils/constants');
-const models = require('../models');
-const buildQueue = require('../services/queue').getInstance();
-const socket = require('../services/socket').getInstance();
+const { cancelProcess } = require("../commands/buildCommands");
+const { BUILD_STATUS } = require("../utils/constants");
+const models = require("../models");
+const buildQueue = require("../services/queue").getInstance();
+const socket = require("../services/socket").getInstance();
 
 const allBuilds = async (req, res) => {
   const builds = await models.Build.find({}).sort({ createdAt: -1 });
@@ -45,7 +45,7 @@ const updateBuildStatus = async (buildId, status) => {
         break;
     }
     await build.save();
-    socket.emit('build-status', {
+    socket.emit("build-status", {
       id: buildId,
       payload: build,
     });
@@ -69,7 +69,7 @@ const triggerBuild = async (req, res) => {
   const job = await buildQueue.add({ id, clearCache });
   build.jobId = job.id;
   await build.save();
-  socket.emit('build-status', {
+  socket.emit("build-status", {
     id,
     payload: build,
   });
@@ -80,7 +80,7 @@ const cancelBuild = async (req, res) => {
   const id = req.params.id;
   await updateBuildStatus(id, BUILD_STATUS.CANCELLED);
   cancelProcess(id);
-  res.json({ message: 'Build cancelled' });
+  res.json({ message: "Build cancelled" });
 };
 
 module.exports = {

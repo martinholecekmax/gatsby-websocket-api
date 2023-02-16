@@ -1,13 +1,13 @@
-const { BUILD_STATUS } = require('../utils/constants');
-const { sendDataLog } = require('../controller/logController');
-const { updateBuildStatus } = require('../controller/buildController');
+const { BUILD_STATUS } = require("../utils/constants");
+const { sendDataLog } = require("../controller/logController");
+const { updateBuildStatus } = require("../controller/buildController");
 const {
   gatsbyClean,
   gatsbyBuild,
   makeDirectory,
   removeDirectory,
   copyDirectory,
-} = require('../commands/buildCommands');
+} = require("../commands/buildCommands");
 
 const job = async (job, done) => {
   const buildId = job.data.id;
@@ -24,14 +24,14 @@ const job = async (job, done) => {
     await makeDirectory(buildId);
     await copyDirectory(buildId);
 
-    sendDataLog(buildId, 'Build completed successfully');
+    sendDataLog(buildId, "Build completed successfully");
     await updateBuildStatus(buildId, BUILD_STATUS.SUCCESS);
   } catch (error) {
-    if (error === 'CANCELLED') {
-      sendDataLog(buildId, 'Build cancelled');
+    if (error === "CANCELLED") {
+      sendDataLog(buildId, "Build cancelled");
       await updateBuildStatus(buildId, BUILD_STATUS.CANCELLED);
     } else {
-      sendDataLog(buildId, 'Build failed');
+      sendDataLog(buildId, "Build failed");
       await updateBuildStatus(buildId, BUILD_STATUS.FAILED);
     }
   }
