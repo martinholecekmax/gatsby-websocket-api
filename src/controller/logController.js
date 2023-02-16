@@ -10,6 +10,7 @@ const sendDataLog = async (buildId, data) => {
     const message = strippedData[i];
     const logs = [];
     if (message && message.trim() !== '') {
+      console.log('message', message);
       try {
         const log = await new models.Log({
           timestamp: new Date(),

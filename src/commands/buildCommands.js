@@ -1,18 +1,18 @@
-const { sendDataLog } = require('../controller/logController');
+const { sendDataLog } = require("../controller/logController");
 
-const spawn = require('cross-spawn-with-kill');
-const path = require('path');
+const spawn = require("cross-spawn-with-kill");
+const path = require("path");
 
-const rootDirectory = path.resolve(__dirname, '../..');
+const rootDirectory = path.resolve(__dirname, "../..");
 let buildDirectory = path.join(rootDirectory, process.env.GATSBY_PROJECT_PATH);
 
 // If the build directory is an absolute path, use it as is
-if (process.env.GATSBY_PROJECT_PATH.startsWith('/')) {
+if (process.env.GATSBY_PROJECT_PATH.startsWith("/")) {
   buildDirectory = process.env.GATSBY_PROJECT_PATH;
 }
 
 const outputDirectory = process.env.BUILD_OUTPUT_DIR;
-const gatsbyCommand = 'gatsby';
+const gatsbyCommand = "gatsby";
 
 let processes = [];
 let cancelledBuilds = [];
@@ -33,7 +33,7 @@ const runCommand = async (
 ) => {
   return new Promise((resolve, reject) => {
     if (isBuildCancelled(buildId)) {
-      reject('CANCELLED');
+      reject("CANCELLED");
       return;
     }
 
@@ -46,22 +46,22 @@ const runCommand = async (
       processes[buildId] = commandProcess;
     }
 
-    commandProcess.stdout.on('data', (data) => {
+    commandProcess.stdout.on("data", (data) => {
       sendDataLog(buildId, data);
     });
 
-    commandProcess.stderr.on('data', (data) => {
+    commandProcess.stderr.on("data", (data) => {
       sendDataLog(buildId, data);
     });
 
-    commandProcess.on('close', (code) => {
+    commandProcess.on("close", (code) => {
       if (code === 0) {
         resolve();
       } else {
         if (isBuildCancelled(buildId)) {
-          reject('CANCELLED');
+          reject("CANCELLED");
         } else {
-          reject('FAILED');
+          reject("FAILED");
         }
       }
     });
@@ -69,28 +69,31 @@ const runCommand = async (
 };
 
 const gatsbyClean = async (buildId) => {
-  return runCommand(buildId, gatsbyCommand, ['clean'], buildDirectory);
+  return runCommand(buildId, gatsbyCommand, ["clean"], buildDirectory);
 };
 
 const gatsbyBuild = async (buildId) => {
-  return runCommand(buildId, gatsbyCommand, ['build'], buildDirectory, true);
+  return runCommand(buildId, gatsbyCommand, ["build"], buildDirectory, true);
 };
 
 const removeDirectory = async (buildId) => {
-  return runCommand(buildId, 'rm', ['-rf', outputDirectory], rootDirectory);
+  return runCommand(buildId, "rm", ["-rf", outputDirectory], rootDirectory);
 };
 
 const makeDirectory = async (buildId) => {
-  return runCommand(buildId, 'mkdir', [outputDirectory], rootDirectory);
+  return runCommand(buildId, "mkdir", [outputDirectory], rootDirectory);
 };
 
 const copyDirectory = async (buildId) => {
-  const copyOutputDirectory = path.join(rootDirectory, outputDirectory);
-  const publicDirectory = path.join(buildDirectory, 'public');
+  let copyOutputDirectory = outputDirectory;
+  if (!outputDirectory.startsWith("/")) {
+    copyOutputDirectory = path.join(rootDirectory, outputDirectory);
+  }
+  const publicDirectory = path.join(buildDirectory, "public");
   return runCommand(
     buildId,
-    'cp',
-    ['-r', '.', copyOutputDirectory],
+    "cp",
+    ["-r", ".", copyOutputDirectory],
     publicDirectory
   );
 };
